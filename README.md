@@ -1,7 +1,7 @@
 # Accessing and Updating all/docs GUIDE
 
 ## Step 1: Get the all/docs Branch Locally
-If you haven't access this file yet. 'Fetch' this branch 
+If you haven't accessed this file yet. 'Fetch' this branch 
 
 Switch to all/docs: 
 ```
@@ -27,8 +27,8 @@ Once your logs are pushed, switch back to your feature branch to continue workin
 git checkout feat/your-current-task
 ```
 
-push your edited promptlogs every after a sprint is done, or whenever you prompt to ai.
+Push your edited prompt logs after a sprint is done, or whenever you prompt to an AI.
 
 ## NOTE:
-Each role that has a Docs to be edited or add. MUST edit their Corresponding Docs based on their ROLE. 
+Each role has a Doc that needs to be edited or added. MUST edit their Corresponding Docs based on their ROLE. 
 
