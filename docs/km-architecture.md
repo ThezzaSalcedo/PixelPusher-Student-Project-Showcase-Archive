@@ -25,11 +25,11 @@ Developer Impact: This guides the creation of the Project Upload Form and ensure
 
 
 
+## Taxonomy (Pooling Phase)
+What it’s for: This is your classification system. It provides a standardized list of categories (Department, Year, Tech Stack) and tags.
+KM Purpose: Wiig’s "Pooling" phase is about coordinating and grouping knowledge assets so they are ready for collaborative access. Without a taxonomy, the archive is just a "messy pile of files"; with it, it becomes an organized repository.
+Developer Impact: The Developer uses this to build the tagging system and the fixed options in the dropdown menus of the upload form.
 
-2. Taxonomy (Pooling Phase)
-      What it’s for: This is your classification system. It provides a standardized list of categories (Department, Year, Tech Stack) and tags.
-      KM Purpose: Wiig’s "Pooling" phase is about coordinating and grouping knowledge assets so they are ready for collaborative access. Without a taxonomy, the archive is just a "messy pile of files"; with it, it becomes an organized repository.
-      Developer Impact: The Developer uses this to build the tagging system and the fixed options in the dropdown menus of the upload form.
 
 | Classification Category              |                                   Description                                |             Suggested Standardized Tags (Examples)             |                                                "KM Rationale (Wiig's ""Pooling"")" |
 | ------------------------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -43,11 +43,11 @@ Developer Impact: This guides the creation of the Project Upload Form and ensure
 
 
 
+## Retrieval Logic Requirements (Wiig's "Applying" Phase)
+What it’s for: This section outlines the rules for how users find knowledge. It explains how the search bar should rank results and how filters should narrow down the "Pool" of projects.
+KM Purpose: In the "Applying" phase, the goal is to help students find "special knowledge" sources to solve their current research problems. Your logic ensures that the most applicable knowledge is easy to retrieve.
+Developer Impact: This tells the Developer how to configure the Postgres Full-Text Search and the Next.js filters. It ensures the search bar isn't just a basic tool, but a strategic portal for "Organizational Memory".
 
-3. Retrieval Logic Requirements (Wiig's "Applying" Phase)
-      What it’s for: This section outlines the rules for how users find knowledge. It explains how the search bar should rank results and how filters should narrow down the "Pool" of projects.
-      KM Purpose: In the "Applying" phase, the goal is to help students find "special knowledge" sources to solve their current research problems. Your logic ensures that the most applicable knowledge is easy to retrieve.
-      Developer Impact: This tells the Developer how to configure the Postgres Full-Text Search and the Next.js filters. It ensures the search bar isn't just a basic tool, but a strategic portal for "Organizational Memory".
    
     1. Smart Search Bar Behavior
            - Full-Text Indexing: The search bar must use Postgres Full-Text Search to scan the Title, Abstract, and Lessons Learned fields simultaneously.
