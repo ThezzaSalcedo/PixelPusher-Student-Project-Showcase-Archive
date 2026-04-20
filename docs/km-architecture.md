@@ -63,8 +63,8 @@ This document defines the technical and conceptual structure of the Student Proj
            - Lessons Learned Highlight: When a user clicks a search result, the "Lessons Learned" or "Methodology" section should be prominently displayed to support the "Internalization" of the previous team's experience.
            - Contact Reference: Every project view must display the Author Contact to allow for socialization—turning the explicit archive back into a personal knowledge connection.
        
-
-                                                                 Summary Table for Developer  
+> **Summary Table for Developer**
+                                    
 
 | Feature            |                               Requirement                                  |                             KM Rationale         |
 | ------------------ | -------------------------------------------------------------------------- | -------------------------------------------------- |
