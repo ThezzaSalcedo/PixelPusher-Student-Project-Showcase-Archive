@@ -21,6 +21,7 @@ This document defines the technical and conceptual structure of the Student Proj
 | author_ids      |       UUID[]        |               Personal Knowledge                   |   Connects the explicit project to the people who hold the personal expertise, allowing for future ""socialization"" if needed. |
 | file_url        |        Text         |              Knowledge Repository                  |   The link to the actual PDF or code stored in Supabase Storage, representing the final explicit knowledge asset. |
 
+\n
 
 2. Taxonomy (Pooling Phase)
       What it’s for: This is your classification system. It provides a standardized list of categories (Department, Year, Tech Stack) and tags.
