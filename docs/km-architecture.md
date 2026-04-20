@@ -22,15 +22,6 @@ This document defines the technical and conceptual structure of the Student Proj
 | file_url        |        Text         |              Knowledge Repository                  |   The link to the actual PDF or code stored in Supabase Storage, representing the final explicit knowledge asset. |
 
 
-# Decision Log
-
-| #   | Date  | Decision Made  | Options Considered  | Who Was Consulted  | Outcome   |
-| --- | ----- | ---------------| ------------------- | ------------------ | --------- |
-| 1   | 04/04 | Use Next.js, Tailwind, Supabase for Techstack| React vs Next.js for Front-end, Firebase/Google Studio vs Supabase for back-end | All Members | Chose Next.js because of its easy utilisation and routing compared to just React. Supabase for its relational PostgreSQL database.                                                          |
-| 2   | mm/dd  | (description) | (description)  | (member) | (description) |
-| 3   | mm/dd  | (description) | (description)  | (member) | (description) |
-| 4   | mm/dd  | (description) | (description)  | (member) | (description) |
-
 2. Taxonomy (Pooling Phase)
       What it’s for: This is your classification system. It provides a standardized list of categories (Department, Year, Tech Stack) and tags.
       KM Purpose: Wiig’s "Pooling" phase is about coordinating and grouping knowledge assets so they are ready for collaborative access. Without a taxonomy, the archive is just a "messy pile of files"; with it, it becomes an organized repository.
@@ -44,8 +35,6 @@ This document defines the technical and conceptual structure of the Student Proj
 | Research Methodology                 |      The framework used to conduct the study or development.                 |                   Methodological Knowledge                     |    Documents how the project was done (e.g., Agile, Scrum), which is a core type of knowledge in Wiig’s model. |
 | Project Status                       |      The current state of the archived project.                              |                      Factual Knowledge                         |    Identifies the specific tools used (e.g., React, Supabase) so future batches can find technical ""special knowledge"" sources. |
 | Academic Year                        |      The year the project was successfully defended.                         |                   Expectational Knowledge                      |    Captures ""tacit"" experiences and ""what we wish we knew,"" turning personal failures into shared organizational memory. |
-
-
 
 
 3. Retrieval Logic Requirements (Wiig's "Applying" Phase)
@@ -71,11 +60,11 @@ This document defines the technical and conceptual structure of the Student Proj
 
                                                                  **Summary Table for Developer**  
 
-Feature            |                               Requirement                                  |                             KM Rationale         
-===================|============================================================================|=======================================================================
-Search Engine      |     Postgres Full-Text Search on Title/Abstract/Tags.                      |     Ensures knowledge is "Available" for retrieval.                   
-Filters            |     The nature of the output or application domain.                        |     Allows ""Pooling"" of knowledge into searchable categories.             
-Results            |     The primary tools used (aligns with your technical documentation).     |     Helps users quickly assess if knowledge is "Applicable"          
+| Feature            |                               Requirement                                  |                             KM Rationale         |
+| ------------------ | -------------------------------------------------------------------------- | -------------------------------------------------- |
+| Search Engine      |     Postgres Full-Text Search on Title/Abstract/Tags.                      |     Ensures knowledge is "Available" for retrieval.  |                 
+| Filters            |     The nature of the output or application domain.                        |     Allows ""Pooling"" of knowledge into searchable categories.  |           
+| Results            |     The primary tools used (aligns with your technical documentation).     |     Helps users quickly assess if knowledge is "Applicable"     |     
 
 
 
