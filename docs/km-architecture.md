@@ -7,19 +7,19 @@ This document defines the technical and conceptual structure of the Student Proj
       KM Purpose: In Wiig’s "Building" phase, knowledge must be codified to be useful. By requiring fields like "Methodology" and "Lessons Learned," you ensure the app captures Methodological and Expectational knowledge that would otherwise be lost when students graduate.
       Developer Impact: This guides the creation of the Project Upload Form and ensures the database can handle all required metadata.
 
-Field Name      |      Data Type      |      "KM Purpose (Wiig's ""Building"" Phase)"      |                                                           KM Rationale
-================|=====================|====================================================|========================================================================================================================================
-id              |        UUID         |                Unique Identifier                   |   Essential for linking files and comments to a specific knowledge asset.
-title           |        Text         |                Factual Knowledge                   |   Provides the primary label for the knowledge asset so it can be identified.
-author contact  |        Text         |                Factual Knowledge                   |   Identifies "who knows what," allowing future students to create expert networks and seek "second opinions" or peer reviews. Must be a valid institutional email.
-abstract        |        Text         |                Conceptual Knowledge                |   Summarizes the ""high-level"" understanding of the project for quick internalizing by future students.
-methodology     |      Text/Enum      |              Methodological Knowledge              |   Documents how the project was done (e.g., Agile, Scrum), which is a core type of knowledge in Wiig’s model.
-tech_stack      |      Array/Text     |                Factual Knowledge                   |   Identifies the specific tools used (e.g., React, Supabase) so future batches can find technical ""special knowledge"" sources.
-lessons_learned |        Text         |             Expectational Knowledge                |   Captures ""tacit"" experiences and ""what we wish we knew,"" turning personal failures into shared organizational memory.
-department      |        Text         |                Pooling Structure                   |   Allows knowledge to be ""pooled"" or grouped by academic domain for easier navigation.
-academic_year   |       Integer       |                Contextual Memory                   |   Places the knowledge in a specific time period to track the evolution of research over generations.
-author_ids      |       UUID[]        |               Personal Knowledge                   |   Connects the explicit project to the people who hold the personal expertise, allowing for future ""socialization"" if needed.
-file_url        |        Text         |              Knowledge Repository                  |   The link to the actual PDF or code stored in Supabase Storage, representing the final explicit knowledge asset.
+| Field Name      |      Data Type      |      "KM Purpose (Wiig's ""Building"" Phase)"      |                                                           KM Rationale |
+| ================|=====================|====================================================|======================================================================================================================================== |
+| id              |        UUID         |                Unique Identifier                   |   Essential for linking files and comments to a specific knowledge asset. |
+| title           |        Text         |                Factual Knowledge                   |   Provides the primary label for the knowledge asset so it can be identified. |
+| author contact  |        Text         |                Factual Knowledge                   |   Identifies "who knows what," allowing future students to create expert networks and seek "second opinions" or peer reviews. Must be a valid institutional email. |
+| abstract        |        Text         |                Conceptual Knowledge                |   Summarizes the ""high-level"" understanding of the project for quick internalizing by future students. |
+| methodology     |      Text/Enum      |              Methodological Knowledge              |   Documents how the project was done (e.g., Agile, Scrum), which is a core type of knowledge in Wiig’s model. |
+| tech_stack      |      Array/Text     |                Factual Knowledge                   |   Identifies the specific tools used (e.g., React, Supabase) so future batches can find technical ""special knowledge"" sources. |
+| lessons_learned |        Text         |             Expectational Knowledge                |   Captures ""tacit"" experiences and ""what we wish we knew,"" turning personal failures into shared organizational memory. |
+| department      |        Text         |                Pooling Structure                   |   Allows knowledge to be ""pooled"" or grouped by academic domain for easier navigation. |
+| academic_year   |       Integer       |                Contextual Memory                   |   Places the knowledge in a specific time period to track the evolution of research over generations. |
+| author_ids      |       UUID[]        |               Personal Knowledge                   |   Connects the explicit project to the people who hold the personal expertise, allowing for future ""socialization"" if needed. |
+| file_url        |        Text         |              Knowledge Repository                  |   The link to the actual PDF or code stored in Supabase Storage, representing the final explicit knowledge asset. |
 
 
 # Decision Log
