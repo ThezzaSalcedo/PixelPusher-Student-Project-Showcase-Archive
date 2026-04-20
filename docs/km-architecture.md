@@ -58,7 +58,7 @@ This document defines the technical and conceptual structure of the Student Proj
            - Contact Reference: Every project view must display the Author Contact to allow for socialization—turning the explicit archive back into a personal knowledge connection.
        
 
-                                                                 **Summary Table for Developer**  
+                                                                 Summary Table for Developer  
 
 | Feature            |                               Requirement                                  |                             KM Rationale         |
 | ------------------ | -------------------------------------------------------------------------- | -------------------------------------------------- |
