@@ -3,7 +3,6 @@
 This document defines the technical and conceptual structure of the Student Project Archive, guided by **Wiig’s KM Framework**.
 
 ## Data Schema (Building Phase)
-1. Data Schema (Building Phase)
       What it’s for: This section defines the structure of the information you are collecting. It tells the Developer exactly what columns to create in the Supabase Postgres database.
       KM Purpose: In Wiig’s "Building" phase, knowledge must be codified to be useful. By requiring fields like "Methodology" and "Lessons Learned," you ensure the app captures Methodological and Expectational knowledge that would otherwise be lost when students graduate.
       Developer Impact: This guides the creation of the Project Upload Form and ensures the database can handle all required metadata.
