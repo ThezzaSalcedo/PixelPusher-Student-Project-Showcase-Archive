@@ -8,7 +8,7 @@ KM Purpose: In Wiig’s "Building" phase, knowledge must be codified to be usefu
 Developer Impact: This guides the creation of the Project Upload Form and ensures the database can handle all required metadata.
       
 
-| Field Name      |      Data Type      |      "KM Purpose (Wiig's ""Building"" Phase)"      |                                                           KM Rationale |
+| Field Name      |      Data Type      |      KM Purpose (Wiig's "Building" Phase)        |                                                           KM Rationale |
 | --------------- | ------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | id              |        UUID         |                Unique Identifier                   |   Essential for linking files and comments to a specific knowledge asset. |
 | title           |        Text         |                Factual Knowledge                   |   Provides the primary label for the knowledge asset so it can be identified. |
