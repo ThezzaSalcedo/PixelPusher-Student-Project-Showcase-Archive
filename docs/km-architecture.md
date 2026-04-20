@@ -21,7 +21,9 @@ This document defines the technical and conceptual structure of the Student Proj
 | author_ids      |       UUID[]        |               Personal Knowledge                   |   Connects the explicit project to the people who hold the personal expertise, allowing for future ""socialization"" if needed. |
 | file_url        |        Text         |              Knowledge Repository                  |   The link to the actual PDF or code stored in Supabase Storage, representing the final explicit knowledge asset. |
 
-\n
+
+
+
 
 2. Taxonomy (Pooling Phase)
       What it’s for: This is your classification system. It provides a standardized list of categories (Department, Year, Tech Stack) and tags.
@@ -36,6 +38,9 @@ This document defines the technical and conceptual structure of the Student Proj
 | Research Methodology                 |      The framework used to conduct the study or development.                 |                   Methodological Knowledge                     |    Documents how the project was done (e.g., Agile, Scrum), which is a core type of knowledge in Wiig’s model. |
 | Project Status                       |      The current state of the archived project.                              |                      Factual Knowledge                         |    Identifies the specific tools used (e.g., React, Supabase) so future batches can find technical ""special knowledge"" sources. |
 | Academic Year                        |      The year the project was successfully defended.                         |                   Expectational Knowledge                      |    Captures ""tacit"" experiences and ""what we wish we knew,"" turning personal failures into shared organizational memory. |
+
+
+
 
 
 3. Retrieval Logic Requirements (Wiig's "Applying" Phase)
