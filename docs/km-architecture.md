@@ -75,10 +75,25 @@ Developer Impact: This tells the Developer how to configure the Postgres Full-Te
 
 
 
+## User Roles & Functional Requirements
+
+To facilitate the flow of knowledge between different stakeholders, the system defines specific features for three primary user roles.
+
+### 1. Student (Knowledge Creator & Beneficiary)
+* **Project Upload Form:** Standardized interface to capture Factual, Methodological, and Expectational knowledge.
+* **Knowledge Personalization:** Ability to "Bookmark" projects for future internalization.
+* **Peer Socialization:** Access to `author_contact` for tacit-to-tacit knowledge exchange.
+* **Asset Management:** Permission to update/delete their own submitted knowledge assets.
+
+### 2. Faculty (Knowledge Validator)
+* **Quality Gatekeeping:** A review queue to approve projects before they are "Pooled" into the public archive.
+* **Feedback Loop:** A private comments section to refine the methodological accuracy of student submissions.
+* **Academic Analytics:** High-level view of tech trends and methodology usage within the department.
+
+### 3. Admin (Knowledge Librarian)
+* **Taxonomy Governance:** Tools to update standardized tags (Tech Stack, Departments) to keep the "Pool" relevant.
+* **System Moderation:** Global permissions to edit or remove content to maintain organizational memory integrity.
+* **User Access Control:** Managing permissions and roles (Student vs. Faculty).
 
 
 
-
-
-Author: Alexza Gayle A. Ignacio
-Date: April 17, 2026
