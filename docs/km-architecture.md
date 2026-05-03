@@ -80,20 +80,21 @@ Developer Impact: This tells the Developer how to configure the Postgres Full-Te
 To facilitate the flow of knowledge between different stakeholders, the system defines specific features for three primary user roles.
 
 ### 1. Student (Knowledge Creator & Beneficiary)
-* **Project Upload Form:** Standardized interface to capture Factual, Methodological, and Expectational knowledge.
-* **Knowledge Personalization:** Ability to "Bookmark" projects for future internalization.
-* **Peer Socialization:** Access to `author_contact` for tacit-to-tacit knowledge exchange.
-* **Asset Management:** Permission to update/delete their own submitted knowledge assets.
+* Project Upload Dashboard: A private area where students can draft and submit their project metadata (Title, Abstract, Tech Stack, Lessons Learned).
+* Knowledge Personalization: Ability to save or "bookmark" specific projects found in the archive for future reference (supporting the Internalization of others' experiences).
+* Peer Contact Portal: A feature to view the author_contact of a project to ask clarifying questions (facilitating Socialization/Tacit-to-Tacit exchange).
+* Self-Management: Permission to update or delete their own submitted projects (maintaining the Holding phase integrity).
 
 ### 2. Faculty (Knowledge Validator)
-* **Quality Gatekeeping:** A review queue to approve projects before they are "Pooled" into the public archive.
-* **Feedback Loop:** A private comments section to refine the methodological accuracy of student submissions.
-* **Academic Analytics:** High-level view of tech trends and methodology usage within the department.
+* Review & Approval Queue: A view where faculty can see "Pending" project uploads and approve them before they enter the public "Pool." This ensures that only high-quality, verified knowledge is stored.
+* Assessment Feedback: A "Comments" or "Notes" section visible only to students and faculty to provide feedback on the methodology used in the project.
+* Departmental Analytics: A dashboard showing the most common Tech Stacks or Research Methodologies used in their department (providing a meta-view of Organizational Memory).
 
 ### 3. Admin (Knowledge Librarian)
-* **Taxonomy Governance:** Tools to update standardized tags (Tech Stack, Departments) to keep the "Pool" relevant.
-* **System Moderation:** Global permissions to edit or remove content to maintain organizational memory integrity.
-* **User Access Control:** Managing permissions and roles (Student vs. Faculty).
+* Taxonomy Manager: A tool to add, edit, or remove "Tags" (e.g., adding a new Tech Stack like "Mojo" or a new Department). This ensures the Pooling logic stays up to date.
+* User Role Management: Ability to upgrade a standard student account to a Faculty or Admin role.
+* Global Content Moderation: Permission to edit or remove any project entry regardless of the author to ensure the archive stays professional and relevant.
+* System Logs: Monitoring who is accessing the knowledge to measure the "health" of the KM system.
 
 
 
