@@ -342,7 +342,7 @@ export const AdminDashboard = () => {
             ) : (
               <div className="space-y-4">
                 {users.map((appUser) => (
-                  <UserRow key={appUser.id} user={appUser} onChangeRole={(newRole) => handleRoleChange(appUser.id, newRole)} />
+                  <UserRow key={appUser.id} user={appUser} onChangeRole={(newRole: AppUser['role']) => handleRoleChange(appUser.id, newRole)} />
                 ))}
               </div>
             )}
