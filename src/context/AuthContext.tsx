@@ -1,11 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-// Exported for use in other files if needed
-export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL || "", 
-  import.meta.env.VITE_SUPABASE_ANON_KEY || ""
-);
+import supabase from '../lib/supabase';
 
 interface User {
   id: string;
