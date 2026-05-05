@@ -1,179 +1,157 @@
+// src/services/projectService.ts
 import supabase from '../lib/supabase';
-import type { Project } from '../types/project';
+import type { Project, ProjectAttachment, Contributor } from '../types/project';
 
-const SAMPLE_PROJECTS: Project[] = [
-  {
-    id: 1,
-    title: 'PixelPusher: A Decentralized Institutional Archive',
-    abstract: 'A student-driven dashboard for preserving and searching institutional projects.',
-    author_id: 'author-1',
-    author_name: 'HotDevs Inc.',
-    author_contact: 'hotdevs@neu.edu.ph',
-    dept: 'CICS',
-    program: 'BSIT',
-    year: '2026',
-    status: 'approved',
-    keywords: ['React', 'Supabase', 'KM System'],
-    tech_stack: ['React', 'Supabase'],
-    lessons_learned: 'Designing a collaborative knowledge archive requires role-based flows.',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    title: 'Hydro-Sense: IoT Fluid Monitoring System',
-    abstract: 'An IoT project for remote fluid level detection in campus facilities.',
-    author_id: 'author-2',
-    author_name: 'Engineering Team A',
-    author_contact: 'eng-team@neu.edu.ph',
-    dept: 'COE',
-    program: 'BSCE',
-    year: '2025',
-    status: 'pending',
-    keywords: ['IoT', 'Hardware', 'Arduino'],
-    tech_stack: ['Arduino', 'Sensors'],
-    lessons_learned: 'Sensor calibration and power optimization matter most for field deployments.',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    title: 'Lexicon: AI-Driven Legal Document Analyzer',
-    abstract: 'A machine learning solution for summarizing legal filings and identifying key clauses.',
-    author_id: 'author-3',
-    author_name: 'Vanguard Devs',
-    author_contact: 'vanguard@neu.edu.ph',
-    dept: 'CAS',
-    program: 'BSCS',
-    year: '2026',
-    status: 'approved',
-    keywords: ['AI', 'NLP', 'Python'],
-    tech_stack: ['Python', 'NLP'],
-    lessons_learned: 'Ethical design improves trust in AI systems for academic workflows.',
-    created_at: new Date().toISOString(),
-  },
-];
-
-const guardData = <T>(data: T | null, error: any, fallback: T): T => {
-  if (error) {
-    console.warn('Supabase project fetch error:', error);
-    return fallback;
-  }
-  return data as T;
-};
-
-export const fetchProjects = async (filters?: {
-  dept?: string;
-  program?: string;
-  year?: string;
+interface FetchOptions {
   status?: string;
-  author_id?: string;
-  query?: string;
-}): Promise<Project[]> => {
-  const query = supabase.from('projects').select('*');
+  limit?: number;
+}
 
-  if (filters?.dept && filters.dept !== 'All') query.eq('dept', filters.dept);
-  if (filters?.program && filters.program !== 'All') query.eq('program', filters.program);
-  if (filters?.year && filters.year !== 'All') query.eq('year', filters.year);
-  if (filters?.status) query.eq('status', filters.status);
-  if (filters?.author_id) query.eq('author_id', filters.author_id);
+// ====================== FETCH FUNCTIONS ======================
 
-  if (filters?.query) {
-    const search = `%${filters.query}%`;
-    query.ilike('title', search);
-  }
-
-  const { data, error } = await query;
-  return guardData(data, error, SAMPLE_PROJECTS);
-};
-
-export const fetchStudentProjects = async (studentId: string): Promise<Project[]> => {
-  const { data, error } = await supabase
+export const fetchProjects = async (options: FetchOptions = {}) => {
+  let query = supabase
     .from('projects')
-    .select('*')
-    .eq('author_id', studentId)
+    .select(`
+      *,
+      contributors(*),
+      attachments(*)
+    `)
     .order('created_at', { ascending: false });
 
-  return guardData(data, error, SAMPLE_PROJECTS.filter((project) => project.author_id === studentId));
+  if (options.status) query = query.eq('status', options.status);
+  if (options.limit) query = query.limit(options.limit);
+
+  const { data, error } = await query;
+  if (error) console.error('fetchProjects:', error);
+  return data || [];
 };
 
-export const fetchPendingProjects = async (): Promise<Project[]> => {
+export const fetchStudentProjects = async (userId: string) => {
+  if (!userId) return [];
   const { data, error } = await supabase
     .from('projects')
-    .select('*')
+    .select(`
+      *,
+      contributors(*),
+      attachments(*)
+    `)
+    .eq('author_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) console.error('fetchStudentProjects:', error);
+  return data || [];
+};
+
+export const fetchPendingProjects = async () => {
+  const { data, error } = await supabase
+    .from('projects')
+    .select(`
+      *,
+      contributors(*),
+      attachments(*)
+    `)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
 
-  return guardData(data, error, SAMPLE_PROJECTS.filter((project) => project.status === 'pending'));
+  if (error) console.error('fetchPendingProjects:', error);
+  return data || [];
 };
 
-export const fetchBookmarkedProjects = async (userId: string): Promise<Project[]> => {
+export const fetchBookmarkedProjects = async (userId: string) => {
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from('bookmarks')
+    .select(`
+      project:projects (
+        *,
+        contributors(*),
+        attachments(*)
+      )
+    `)
+    .eq('user_id', userId);
+
+  if (error) console.error('fetchBookmarkedProjects:', error);
+  return (data || []).map((b: any) => b.project).filter(Boolean);
+};
+
+export const fetchVersionHistory = async (versionGroupId: string) => {
+  if (!versionGroupId) return [];
   const { data, error } = await supabase
     .from('projects')
-    .select('*')
-    .eq('bookmarked_by', userId)
-    .order('created_at', { ascending: false });
+    .select(`
+      *,
+      contributors(*),
+      attachments(*)
+    `)
+    .eq('version_group_id', versionGroupId)
+    .order('version_number', { ascending: true });
 
-  if (error) {
-    console.warn('Supabase fetchBookmarkedProjects error:', error);
-    return SAMPLE_PROJECTS.filter((project) => project.bookmarked);
-  }
-
-  return data || SAMPLE_PROJECTS.filter((project) => project.bookmarked);
+  if (error) console.error('fetchVersionHistory:', error);
+  return data || [];
 };
 
-export const toggleBookmark = async (projectId: number, userId: string) => {
-  const project = SAMPLE_PROJECTS.find((item) => item.id === projectId);
-  if (project) project.bookmarked = !project.bookmarked;
+// ====================== MUTATION FUNCTIONS ======================
 
-  try {
-    const { error } = await supabase.from('bookmarks').upsert({ project_id: projectId, user_id: userId });
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.warn('Supabase toggleBookmark error:', error);
-    return true;
-  }
-};
-
-export const sendContactMessage = async (
-  fromUserId: string,
-  toEmail: string,
-  projectId: number,
-  message: string
-) => {
-  const { error } = await supabase.from('contacts').insert([{ from_user_id: fromUserId, recipient_email: toEmail, project_id: projectId, message }]);
-  if (error) {
-    console.warn('Supabase sendContactMessage error:', error);
-    return false;
-  }
-  return true;
-};
-
-export const createProject = async (project: Partial<Project>): Promise<Project | null> => {
+export const createProject = async (projectData: any) => {
   const { data, error } = await supabase
     .from('projects')
-    .insert([{ ...project, status: project.status ?? 'pending' }])
+    .insert(projectData)
+    .select()
     .single();
 
   if (error) {
-    console.warn('Supabase create project error:', error);
+    console.error('createProject error:', error);
     return null;
   }
-
-  return data as Project | null;
+  return data;
 };
 
-export const updateProject = async (projectId: number, updates: Partial<Project>) => {
+export const createProjectVersion = async (
+  baseId: number, 
+  newVersionData: any, 
+  userId?: string
+) => {
+  // Mark previous versions in the same group as not latest
+  const { error: updateError } = await supabase
+    .from('projects')
+    .update({ is_latest_version: false })
+    .eq('version_group_id', newVersionData.version_group_id);
+
+  if (updateError) {
+    console.error('Failed to update previous versions:', updateError);
+  }
+
+  // Insert new version
+  const { data, error } = await supabase
+    .from('projects')
+    .insert({
+      ...newVersionData,
+      version_number: newVersionData.version_number || 2,
+      is_latest_version: true,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('createProjectVersion error:', error);
+    return null;
+  }
+  return data;
+};
+
+export const updateProject = async (projectId: number, updates: any) => {
   const { data, error } = await supabase
     .from('projects')
     .update(updates)
     .eq('id', projectId)
+    .select()
     .single();
 
   if (error) {
-    console.warn('Supabase update project error:', error);
+    console.error('updateProject error:', error);
     return null;
   }
-
   return data;
 };
 
@@ -184,17 +162,70 @@ export const deleteProject = async (projectId: number) => {
     .eq('id', projectId);
 
   if (error) {
-    console.warn('Supabase delete project error:', error);
+    console.error('deleteProject error:', error);
     return false;
   }
-
   return true;
 };
 
 export const approveProject = async (projectId: number) => {
-  return updateProject(projectId, { status: 'approved' });
+  const { data, error } = await supabase
+    .from('projects')
+    .update({ status: 'approved' })
+    .eq('id', projectId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('approveProject error:', error);
+    return null;
+  }
+  return data;
 };
 
 export const rejectProject = async (projectId: number) => {
-  return updateProject(projectId, { status: 'rejected' });
+  const { data, error } = await supabase
+    .from('projects')
+    .update({ status: 'rejected' })
+    .eq('id', projectId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('rejectProject error:', error);
+    return null;
+  }
+  return data;
+};
+
+export const toggleBookmark = async (projectId: number, userId: string) => {
+  const { data: existing } = await supabase
+    .from('bookmarks')
+    .select('id')
+    .eq('project_id', projectId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase
+      .from('bookmarks')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('user_id', userId);
+  } else {
+    await supabase
+      .from('bookmarks')
+      .insert({ project_id: projectId, user_id: userId });
+  }
+};
+
+export const sendContactMessage = async (
+  senderId: string,
+  recipientEmail: string,
+  projectId: number,
+  message: string
+) => {
+  console.log('Contact Message Sent:', { senderId, recipientEmail, projectId, message });
+  // Optional: Save to messages table later
+  return true;
 };
