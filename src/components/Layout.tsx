@@ -1,73 +1,64 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Sidebar } from './dashboard/Sidebar'; // The decoupled sidebar
+import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { DashboardNavProvider } from '../context/DashboardNavContext';
-
-// Define the PublicNavbar locally to fix the "Cannot find name" error
-const PublicNavbar = () => {
-  const { user, logout } = useAuth();
-  
-  return (
-    <nav className="absolute w-full z-40 bg-slate-950/20 backdrop-blur-sm border-b border-white/5 h-20 shrink-0">
-      <div className="max-w-7xl mx-auto px-4 flex justify-between items-center h-full sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-4 group">
-          <span className="font-black text-xl tracking-tight block leading-none text-white">NEU ARCHIVE</span>
-        </Link>
-
-        <div className="flex items-center gap-6">
-          {user ? (
-            <button 
-              onClick={() => logout()} 
-              className="p-2.5 text-slate-500 hover:text-white uppercase text-[10px] font-black tracking-widest"
-            >
-              Sign Out
-            </button>
-          ) : (
-            <Link 
-              to="/login" 
-              className="bg-white text-slate-950 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-orange-50 transition-all shadow-xl"
-            >
-              Sign In
-            </Link>
-          )}
-        </div>
-      </div>
-    </nav>
-  );
-};
+import { LogOut } from 'lucide-react';
 
 export const Layout = () => {
-  const location = useLocation();
-  
-  // Dashboard routes use the decoupled Sidebar[cite: 3, 6]
-  const isDashboard = location.pathname.startsWith('/dashboard');
-  
-  // The PublicNavbar only appears on the Landing Page[cite: 4, 6]
-  const isLandingPage = location.pathname === '/';
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation(); // Used to detect current page
+
+  const handleSignOut = async () => {
+    await logout();
+    navigate('/');
+  };
+
+  // Check if we are currently on the login page
+  const isLoginPage = location.pathname === '/login';
 
   return (
-    <DashboardNavProvider>
-      <div className="h-screen w-full flex overflow-hidden bg-[#020d1d] text-white font-sans selection:bg-[#C5A059]/30">
-        
-        {/* 1. FIXED SIDEBAR: Rendered for dashboards */}
-        {isDashboard && <Sidebar />}
+    <div className="min-h-screen bg-transparent font-sans text-white flex flex-col">
+      {/* 
+          1. !isLoginPage: Only render the nav if we are NOT on the login page.
+          2. absolute: Makes the header stay at the top of the landing page so it scrolls away.
+      */}
+      {!isLoginPage && (
+        <nav className="absolute w-full z-40 bg-slate-950/20 backdrop-blur-sm border-b border-white/5 h-20">
+          <div className="max-w-7xl mx-auto px-4 flex justify-between items-center h-full sm:px-6 lg:px-8">
+            <Link to="/" className="flex items-center gap-4 group">
+              <span className="font-black text-xl tracking-tight block leading-none">NEU ARCHIVE</span>
+            </Link>
 
-        <div className="flex-1 flex flex-col relative overflow-hidden">
-          {/* 2. PUBLIC HEADER: Strictly for the Landing Page[cite: 4, 6] */}
-          {isLandingPage && <PublicNavbar />} 
+            <div className="flex items-center gap-6">
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-bold text-white leading-tight">{user.displayName}</p>
+                    <p className="text-[10px] text-orange-200 uppercase font-black italic">{user.role}</p>
+                  </div>
+                  <button 
+                    onClick={handleSignOut} 
+                    className="p-2.5 hover:bg-white/5 rounded-xl text-slate-500 hover:text-white transition-colors"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                </div>
+              ) : (
+                <Link 
+                  to="/login" 
+                  className="bg-white text-slate-950 px-8 py-3 rounded-full text-xs font-black uppercase tracking-widest hover:bg-orange-50 transition-all shadow-xl"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+          </div>
+        </nav>
+      )}
 
-          {/* 3. SCROLLABLE CONTENT: Main viewport for Dashboards */}
-          <main className={`flex-1 overflow-y-auto no-scrollbar scroll-smooth relative z-10 ${isLandingPage ? 'pt-20' : ''}`}>
-            <Outlet />
-          </main>
-        </div>
+      {/* Main Content Area */}
+      <div className="flex-1 relative">
+        <Outlet />
       </div>
-
-      {/* Global CSS for hiding scrollbars while maintaining functionality[cite: 3] */}
-      <style>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
-    </DashboardNavProvider>
+    </div> 
   );
 };
