@@ -49,6 +49,21 @@ This avoids technical debt in three ways:
 3.  **Transfer of Tacit Warnings:** Turning a teammate's "mistake" into a permanent "holding" asset.
 
 ## 4. Governance and Security (The Holding Phase)
-To maintain a reliable "Holding" phase, we implemented **Row Level Security (RLS)** and **Role-Based Access Control (RBAC)**.
+To maintain a reliable "Holding" phase, we implemented **Row Level Security (RLS)** and **Role-Based Access Control (RBAC)** via Supabase.
+
 * **Integrity:** RLS ensures only authors can modify their work, preventing the corruption of the archive.
-* **Validation:** The Faculty role acts as a "
+* **Validation:** The **Faculty role** acts as a "Knowledge Steward," validating the quality of submissions before they are pooled into the public library.
+* **Institutional Access:** Authentication is strictly limited to `@neu.edu.ph` domains to ensure the repository remains a private institutional asset.
+
+## 5. Technical Stack
+The **Pixel Pushers** architecture is built for speed, security, and institutional scalability.
+
+* **Frontend:** React (Vite) with Tailwind CSS for a responsive, high-performance UI.
+* **Backend:** Supabase integration utilizing:
+    * **Auth:** Managed Google OAuth and Email/Password flows restricted to `@neu.edu.ph` domains.
+    * **Postgres Database:** High-integrity relational storage for project metadata.
+    * **Storage:** Secure bucket storage for academic files and project assets.
+* **Database Patterns:**
+    * **Row Level Security (RLS):** Granular access control policies that protect student data at the row level.
+    * **Upsert Logic:** Efficient profile persistence that ensures user data is synchronized upon every login without creating duplicate records.
+    * **Fault-Tolerant Auth:** Implementation of timeout guards and local state fallbacks to prevent UI deadlocks during high-latency database operations.
