@@ -1,0 +1,4 @@
+Test ID,Feature,Scenario,Steps,Expected Result,Actual Result,Status
+TC-001,Authentication,Valid NEU Login,"1. Navigate to /login2. Click ""Institutional Single Sign-On""3. Authenticate with an @neu.edu.ph email.",User is redirected to /dashboard and assigned their DB role.,[Leave blank until tested],🟡 Pending
+TC-002,Authentication,Invalid Domain Login,"1. Navigate to /login2. Click ""Institutional Single Sign-On""3. Authenticate with a @gmail.com email.","Authentication fails. User sees: ""Access Denied: Please use your official University Account.""",[Leave blank until tested],🟡 Pending
+TC-003,Routing,Unauthorized Route Access,1. Login as Student.2. Manually type /dashboard/admin in URL bar and press Enter.,RoleGuard intercepts and redirects user back to / or their proper dashboard.,[Leave blank until tested],🟡 Pending
