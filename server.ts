@@ -252,6 +252,91 @@ app.get('/api/auth/status', (req, res) => {
   }
 });
 
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, displayName, role } = req.body;
+
+    // Validate input
+    if (!email || !password || !displayName || !role) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    if (!email.endsWith('@neu.edu.ph')) {
+      return res.status(400).json({ message: 'Please use your official @neu.edu.ph email address' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
+    // For demo, create user in memory (in production, this would use Supabase)
+    const userId = `user_${Date.now()}`;
+    const newUser = {
+      id: userId,
+      displayName,
+      email,
+      role,
+      onboarded: false,
+    };
+
+    usersDb[userId] = newUser;
+
+    res.status(201).json({ 
+      message: 'Registration successful! You can now log in.',
+      user: {
+        id: userId,
+        email: email,
+        displayName: displayName,
+        role: role,
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'An unexpected error occurred' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    if (!email.endsWith('@neu.edu.ph')) {
+      return res.status(400).json({ message: 'Please use your official @neu.edu.ph email address' });
+    }
+
+    // Find user in memory database
+    const user = Object.values(usersDb).find(u => u.email === email);
+    
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password. Please try again.' });
+    }
+
+    // For demo, accept any password (in production, verify actual password)
+    if (password.length < 1) {
+      return res.status(401).json({ message: 'Invalid email or password. Please try again.' });
+    }
+
+    res.json({ 
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        displayName: user.displayName,
+        email: user.email,
+        role: user.role,
+        onboarded: user.onboarded,
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'An unexpected error occurred' });
+  }
+});
+
 app.post('/api/user/profile', (req, res) => {
   if (!req.isAuthenticated()) return res.status(401).json({ error: 'Unauthorized' });
   const { studentId, department, advisor } = req.body;

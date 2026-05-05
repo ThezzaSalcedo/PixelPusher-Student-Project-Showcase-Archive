@@ -1,3 +1,4 @@
+// src/context/AuthContext.tsx
 import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
 import supabase from '../lib/supabase';
 
@@ -129,10 +130,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         if (session?.user) {
           await handleSetUser(session.user);
         } else {
+          profileCache.current.clear();
           setUser(null);
         }
         setLoading(false);
@@ -150,9 +152,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: window.location.origin
-        }
+        options: { redirectTo: window.location.origin }
       });
 
       if (error) setError("Google sign-in failed. Please try again.");
@@ -161,7 +161,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Manual Email + Password Login (Using Supabase)
+  // Manual Email + Password Login (Optimized)
   const loginWithEmail = async (email: string, password: string): Promise<User | null> => {
     setError(null);
     setAuthenticating(true);

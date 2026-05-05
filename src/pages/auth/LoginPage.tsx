@@ -163,6 +163,19 @@ export const LoginPage: React.FC = () => {
             <img src="https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png" className="w-5 h-5" />
             {authenticating ? 'Redirecting...' : 'Sign in with Google'}
           </button>
+
+          {/* REGISTER LINK */}
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-400">
+              Don't have an account?{' '}
+              <button 
+                onClick={() => navigate('/register')}
+                className="text-[#D4AF37] hover:text-[#D4AF37]/80 font-medium transition-colors"
+              >
+                Create Account
+              </button>
+            </p>
+          </div>
         </div>
       </motion.div>
     </div>
