@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { DashboardNavProvider } from './context/DashboardNavContext';
 import { ModernBackground } from './components/ModernBackground';
 import { Layout } from './components/Layout';
 
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
+import { RegisterPage } from './pages/auth/RegisterPage';
 
 import { StudentDashboard } from './pages/dashboards/StudentDashboard';
 import { FacultyDashboard } from './pages/dashboards/FacultyDashboard';
@@ -52,7 +54,7 @@ const RoleGuard = ({
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
   if (user.role?.toLowerCase() !== role.toLowerCase()) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={getDashboardRoute(user.role)} replace />;
   }
 
   return <>{children}</>;
@@ -72,23 +74,30 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             {/* DASHBOARDS */}
             <Route path="/dashboards/student" element={
               <RoleGuard role="student">
-                <StudentDashboard />
+                <DashboardNavProvider>
+                  <StudentDashboard />
+                </DashboardNavProvider>
               </RoleGuard>
             } />
 
             <Route path="/dashboards/faculty" element={
               <RoleGuard role="faculty">
-                <FacultyDashboard />
+                <DashboardNavProvider>
+                  <FacultyDashboard />
+                </DashboardNavProvider>
               </RoleGuard>
             } />
 
             <Route path="/dashboards/admin" element={
               <RoleGuard role="admin">
-                <AdminDashboard />
+                <DashboardNavProvider>
+                  <AdminDashboard />
+                </DashboardNavProvider>
               </RoleGuard>
             } />
 
