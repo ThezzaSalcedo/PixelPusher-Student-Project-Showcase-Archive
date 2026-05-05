@@ -28,8 +28,8 @@ A decentralized, high-fidelity Knowledge Management platform designed specifical
 
 ## Team
 * **Developer:** PixelPusher.
-* **Scrum Master:** [Thezzalia Mae Salcedo]
-* **Full-Stack Developer:** [Josh Tomacruz]
-* **UX/UI:** [Eunice Mabasa]
-* **Knowledge Management Analyst:** [Alexza Gayle Ignacio]
-* **QA & Docs Lead:** [Claryss Mae Pangasian]
+* **Scrum Master:** Thezzalia Mae Salcedo
+* **Full-Stack Developer:** Josh Tomacruz
+* **UX/UI:** Eunice Mabasa
+* **Knowledge Management Analyst:** Alexza Gayle Ignacio
+* **QA & Docs Lead:** Claryss Mae Pangasian
