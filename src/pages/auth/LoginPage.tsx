@@ -6,26 +6,37 @@ import { useAuth } from '../../context/AuthContext';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, login, loginWithEmail, error, setError } = useAuth();
+  const { user, login, loginWithEmail, error, setError, authenticating } = useAuth();
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
+  const getDashboardRoute = (role?: string) => {
+    switch (role?.toLowerCase()) {
+      case 'student':
+        return '/dashboards/student';
+      case 'faculty':
+        return '/dashboards/faculty';
+      case 'admin':
+        return '/dashboards/admin';
+      default:
+        return '/';
+    }
+  };
+
   React.useEffect(() => {
-    console.log('LoginPage useEffect - user:', user);
     if (user) {
-      console.log('LoginPage - navigating to /dashboards');
-      navigate('/dashboards');
+      navigate(getDashboardRoute(user.role));
     }
   }, [user, navigate]);
 
-  if (user) return <Navigate to="/dashboards" replace />;
+  if (user) return <Navigate to={getDashboardRoute(user.role)} replace />;
 
   const handleManualLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const success = await loginWithEmail(email, password);
-    if (success) {
-      navigate('/dashboards');
+    const authenticatedUser = await loginWithEmail(email, password);
+    if (authenticatedUser) {
+      navigate(getDashboardRoute(authenticatedUser.role));
     }
   };
 
@@ -110,14 +121,28 @@ export const LoginPage: React.FC = () => {
 
             {/* GOLD BUTTON */}
             <motion.button 
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: authenticating ? 1 : 1.02 }}
+              whileTap={{ scale: authenticating ? 1 : 0.98 }}
               type="submit"
-              className="w-full bg-gradient-to-r from-[#D4AF37] to-[#b8962e] text-black py-5 rounded-full font-bold uppercase tracking-widest flex items-center justify-center gap-3"
+              disabled={authenticating}
+              className="w-full bg-gradient-to-r from-[#D4AF37] to-[#b8962e] text-black py-5 rounded-full font-bold uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              <LockKeyhole className="w-4 h-4" />
-              Access Vault
-              <ArrowRight className="w-4 h-4" />
+              {authenticating ? (
+                <>
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-4 h-4 border-2 border-black border-t-transparent rounded-full"
+                  />
+                  Authenticating...
+                </>
+              ) : (
+                <>
+                  <LockKeyhole className="w-4 h-4" />
+                  Access Vault
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </motion.button>
           </form>
 
@@ -132,10 +157,11 @@ export const LoginPage: React.FC = () => {
           {/* GOOGLE */}
           <button 
             onClick={login}
-            className="w-full bg-white text-black py-4 rounded-full flex items-center justify-center gap-3 hover:bg-gray-200 transition"
+            disabled={authenticating}
+            className="w-full bg-white text-black py-4 rounded-full flex items-center justify-center gap-3 hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <img src="https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png" className="w-5 h-5" />
-            Sign in with Google
+            {authenticating ? 'Redirecting...' : 'Sign in with Google'}
           </button>
         </div>
       </motion.div>

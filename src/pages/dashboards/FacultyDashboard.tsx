@@ -5,17 +5,15 @@ import {
   Eye,
   Bookmark,
   LogOut,
-  ChevronLeft,
-  Menu,
   Database,
-  Activity,
-  Zap,
   Check,
   X,
-  User
+  Hash,
+  ExternalLink,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useDashboardNav } from '../../context/DashboardNavContext';
 import { useNavigate } from 'react-router-dom';
 import type { Project } from '../../types/project';
 import {
@@ -28,14 +26,6 @@ import {
 } from '../../services/projectService';
 
 /* ====================== TYPE DEFINITIONS ====================== */
-
-interface NavItemProps {
-  icon: React.ReactNode;
-  label: string;
-  active: boolean;
-  collapsed: boolean;
-  onClick: () => void;
-}
 
 interface SectionCardProps {
   title: string;
@@ -56,23 +46,15 @@ interface ApprovalCardProps {
   onPreview: (project: Project) => void;
 }
 
-const SECTIONS = [
-  { id: 'repository', label: 'Repository', icon: Database },
-  { id: 'approval', label: 'Review Queue', icon: CheckSquare },
-  { id: 'preview', label: 'Project Preview', icon: Eye },
-  { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark },
-] as const;
-
-type SectionKey = (typeof SECTIONS)[number]['id'];
+type SectionKey = 'repository' | 'approval' | 'preview' | 'bookmarks';
 
 /* ====================== MAIN COMPONENT ====================== */
 
 export const FacultyDashboard = () => {
   const { user, logout } = useAuth();
+  const { activeSection, setActiveSection } = useDashboardNav();
   const navigate = useNavigate();
-  
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeSection, setActiveSection] = useState<SectionKey>('repository');
+
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -113,17 +95,28 @@ export const FacultyDashboard = () => {
     refreshData();
   }, [user?.id]);
 
+  const matchesQuery = (p: Project, q: string) => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return true;
+    return (
+      p.title.toLowerCase().includes(needle) ||
+      (p.abstract || '').toLowerCase().includes(needle) ||
+      p.keywords.some((k) => k.toLowerCase().includes(needle)) ||
+      (p.submission_type || '').toLowerCase().includes(needle)
+    );
+  };
+
   const filteredRepo = useMemo(() => {
-    return repositoryProjects.filter(p => {
-      const matchSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return repositoryProjects.filter((p) => {
+      const matchSearch = matchesQuery(p, searchQuery);
       const matchDept = selectedDept === 'All' || p.dept === selectedDept;
       return matchSearch && matchDept;
     });
   }, [repositoryProjects, searchQuery, selectedDept]);
 
   const filteredPending = useMemo(() => {
-    return pendingProjects.filter(p => {
-      const matchSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase());
+    return pendingProjects.filter((p) => {
+      const matchSearch = matchesQuery(p, searchQuery);
       const matchDept = selectedDept === 'All' || p.dept === selectedDept;
       return matchSearch && matchDept;
     });
@@ -138,6 +131,31 @@ export const FacultyDashboard = () => {
       case 'repository':
         return (
           <SectionCard title="Knowledge Repository" subtitle="Browse approved projects in the archive." count={filteredRepo.length}>
+            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center">
+              <label className="flex flex-1 items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <Search size={16} className="text-[#C5A059]" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search titles, abstracts, tags, or submission type..."
+                  className="bg-transparent flex-1 outline-none text-sm"
+                />
+              </label>
+              <label className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-[10px] uppercase tracking-widest text-[#C5A059] md:min-w-[200px]">
+                Department
+                <select
+                  value={selectedDept}
+                  onChange={(e) => setSelectedDept(e.target.value)}
+                  className="bg-transparent text-sm text-white outline-none"
+                >
+                  {['All', 'CICS', 'COE', 'CAS'].map((d) => (
+                    <option key={d} value={d} className="text-black">
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <div className="grid gap-6">
               {filteredRepo.map(p => (
                 <ProjectCard key={`repo-${p.id}`} project={p} isBookmarked={bookmarks.some(b => b.id === p.id)} onBookmark={() => {
@@ -151,6 +169,17 @@ export const FacultyDashboard = () => {
       case 'approval':
         return (
           <SectionCard title="Pending Review" subtitle="Projects awaiting your evaluation and approval." count={filteredPending.length}>
+            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center">
+              <label className="flex flex-1 items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <Search size={16} className="text-[#C5A059]" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Filter queue by keyword or tag..."
+                  className="bg-transparent flex-1 outline-none text-sm"
+                />
+              </label>
+            </div>
             <div className="space-y-4">
               {filteredPending.map(p => (
                 <ApprovalCard key={`pending-${p.id}`} project={p} 
@@ -205,54 +234,6 @@ export const FacultyDashboard = () => {
         }}
       />
 
-      {/* Sidebar */}
-      <motion.aside 
-        animate={{ width: isCollapsed ? 88 : 300 }} 
-        className="relative border-r border-[#08304f]/50 bg-[#071628]/95 backdrop-blur-3xl flex flex-col z-50 shadow-2xl"
-      >
-        <button onClick={() => setIsCollapsed((value) => !value)} className="absolute -right-3 top-12 bg-[#C5A059] text-black rounded-full p-1.5 border border-white/20 hover:bg-[#d4af7a] shadow-lg z-[60]">
-          {isCollapsed ? <Menu size={12} /> : <ChevronLeft size={12} />}
-        </button>
-
-        <div className="p-8 flex items-center gap-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#C5A059] to-amber-700 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-[#C5A059]/30">
-            <span className="font-black text-sm">N</span>
-          </div>
-          {!isCollapsed && <span className="font-black text-xl tracking-tighter">NEU Archive</span>}
-        </div>
-
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar scroll-smooth">
-          {SECTIONS.map((section) => (
-            <NavItem
-              key={section.id}
-              icon={<section.icon size={20} />}
-              label={section.label}
-              active={activeSection === section.id}
-              collapsed={isCollapsed}
-              onClick={() => setActiveSection(section.id)}
-            />
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-white/10 mt-auto space-y-4">
-          <div className="rounded-3xl border border-[#C5A059]/20 bg-white/[0.03] p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-[#0f1c32] border border-[#C5A059]/20 flex items-center justify-center text-sm font-bold text-white uppercase">
-                {user?.displayName?.split(' ').map((word: any[]) => word[0]).join('').slice(0, 2) || 'U'}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold truncate">{user?.displayName || 'Account'}</p>
-                <p className="text-xs uppercase text-[#C5A059] tracking-widest">{user?.role || 'Unknown Role'}</p>
-              </div>
-            </div>
-          </div>
-
-          <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-slate-400 hover:text-red-400 transition-all group">
-            <LogOut size={20} className="shrink-0 group-hover:-translate-x-1 transition-transform" />
-            {!isCollapsed && <span className="text-xs font-bold uppercase tracking-widest">Sign Out</span>}
-          </button>
-        </div>
-      </motion.aside>
 
       <main className="flex-1 flex flex-col overflow-hidden relative z-10">
         <div className="flex-1 overflow-y-auto p-10 pt-10 no-scrollbar scroll-smooth">
@@ -273,15 +254,6 @@ export const FacultyDashboard = () => {
 
 /* ====================== REFACTORED SUB-COMPONENTS ====================== */
 
-const NavItem = ({ icon, label, active, collapsed, onClick }: NavItemProps) => (
-  <button 
-    onClick={onClick} 
-    className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-5 px-5'} py-4 rounded-2xl transition-all group relative border border-transparent ${active ? 'bg-[#C5A059]/10 text-[#C5A059] border-[#C5A059]/20' : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'}`}
-  >
-    <div className="shrink-0">{icon}</div>
-    {!collapsed && <span className="text-xs font-bold uppercase tracking-widest">{label}</span>}
-  </button>
-);
 
 const SectionCard = ({ title, subtitle, children, count }: any) => (
   <div className="relative w-full max-w-full px-4 sm:px-0">
@@ -309,9 +281,22 @@ const ProjectCard = ({ project, isBookmarked, onBookmark }: ProjectCardProps) =>
   <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-[48px] border border-white/10 bg-[#000000]/70 backdrop-blur-2xl p-8 shadow-xl hover:border-[#C5A059]/30 transition-all">
     <div className="flex justify-between items-start gap-4">
       <div className="overflow-hidden flex-1">
-        <h3 className="font-bold text-lg truncate">{project.title}</h3>
-        <p className="text-xs text-slate-400 mt-2">{project.dept} • {project.program} • {project.year}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] uppercase tracking-[0.35em] px-3 py-1 rounded-full bg-white/10 border border-white/10">
+            {project.submission_type || 'project'}
+          </span>
+          <p className="text-xs text-slate-400">{project.dept} • {project.program} • {project.year}</p>
+        </div>
+        <h3 className="font-bold text-lg truncate mt-2">{project.title}</h3>
         <p className="text-sm text-slate-300 mt-3 line-clamp-2">{project.abstract}</p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {project.keywords.slice(0, 6).map((k) => (
+            <span key={k} className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest text-[#C5A059]">
+              <Hash size={10} />
+              {k}
+            </span>
+          ))}
+        </div>
       </div>
       <button onClick={onBookmark} className={`p-3 rounded-lg flex-shrink-0 transition-all ${isBookmarked ? 'text-[#C5A059] bg-[#C5A059]/10' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
         <Bookmark size={20} fill={isBookmarked ? "currentColor" : "none"} />
@@ -346,6 +331,7 @@ const ApprovalCard = ({ project, onApprove, onReject, onPreview }: ApprovalCardP
 const PreviewPanel = ({ project }: { project: Project }) => (
   <div className="space-y-6">
     <div>
+      <p className="text-[10px] uppercase tracking-[0.4em] text-[#C5A059] mb-2">{project.submission_type || 'project'}</p>
       <h3 className="text-2xl font-bold mb-3">{project.title}</h3>
       <p className="text-slate-300 leading-relaxed">{project.abstract}</p>
     </div>
@@ -366,6 +352,45 @@ const PreviewPanel = ({ project }: { project: Project }) => (
         <p className="text-[10px] text-[#C5A059] font-bold uppercase tracking-widest">Author</p>
         <p className="text-sm font-semibold mt-2 truncate">{project.author_name}</p>
       </div>
+    </div>
+    {!!project.contributors?.length && (
+      <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+        <p className="text-[10px] text-[#C5A059] font-bold uppercase tracking-widest mb-2">Contributors</p>
+        <ul className="text-sm text-slate-200 space-y-1">
+          {project.contributors.map((c) => (
+            <li key={`${c.name}-${c.email}`}>
+              {c.name}
+              {c.email ? <span className="text-slate-500"> • {c.email}</span> : null}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+    {!!project.attachments?.length && (
+      <div className="p-4 bg-white/5 rounded-2xl border border-white/10 space-y-3">
+        <p className="text-[10px] text-[#C5A059] font-bold uppercase tracking-widest">Attachments</p>
+        <div className="flex flex-wrap gap-2">
+          {project.attachments.map((a) => (
+            <a
+              key={`${a.kind}-${a.url}`}
+              href={a.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 text-xs uppercase tracking-widest hover:border-[#C5A059]/50"
+            >
+              <ExternalLink size={14} />
+              {a.kind}
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+    <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+      <p className="text-[10px] text-[#C5A059] font-bold uppercase tracking-widest mb-2">Version metadata</p>
+      <p className="text-sm text-slate-300">
+        Group: {project.version_group_id || '—'} • Version {project.version_number ?? 1}{' '}
+        {project.is_latest_version ? '(latest)' : ''}
+      </p>
     </div>
   </div>
 );

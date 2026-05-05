@@ -6,12 +6,24 @@ import { useAuth } from '../context/AuthContext';
 export const LandingPage: React.FC = () => {
   const { user } = useAuth();
 
-  if (user) return <Navigate to="/dashboards" replace />;
+  const getDashboardRoute = (role?: string) => {
+    switch (role?.toLowerCase()) {
+      case 'student':
+        return '/dashboards/student';
+      case 'faculty':
+        return '/dashboards/faculty';
+      case 'admin':
+        return '/dashboards/admin';
+      default:
+        return '/';
+    }
+  };
+
+  if (user) return <Navigate to={getDashboardRoute(user.role)} replace />;
 
   return (
     <div className="min-h-screen bg-[#0B1C2C] text-white font-serif relative overflow-hidden">
 
-      {/* 🌌 BACKGROUND */}
       <div 
         className="absolute inset-0 bg-cover bg-center z-0"
         style={{ backgroundImage: "url('/images/333.jpg')" }}
@@ -20,35 +32,6 @@ export const LandingPage: React.FC = () => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_60%,_#0B1C2C_100%)] z-0" />
 
       <main className="relative z-10">
-
-        {/* 🧭 CLEAN HEADER (FIXED) */}
-        <header className="relative z-20 flex justify-center pt-6 px-6">
-          <div className="w-full max-w-6xl flex items-center justify-between 
-                          border border-[#C5A059]/20 
-                          rounded-full px-8 py-4 shadow-lg bg-white/10 backdrop-blur-sm">
-
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <span className="text-lg tracking-[0.25em] text-[#C5A059] font-bold">
-                NEU
-              </span>
-              <span className="text-lg tracking-[0.25em] text-white font-light">
-                ARCHIVE
-              </span>
-            </div>
-
-            {/* Sign In */}
-            <Link
-              to="/login"
-              className="px-5 py-2 rounded-full border border-[#C5A059] text-[#C5A059]
-                         text-xs tracking-[0.2em]
-                         hover:bg-[#C5A059] hover:text-black transition"
-            >
-              SIGN IN
-            </Link>
-
-          </div>
-        </header>
 
         {/* 🎯 HERO */}
         <section className="text-center py-28 px-6">

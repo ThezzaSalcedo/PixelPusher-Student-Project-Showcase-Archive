@@ -12,6 +12,19 @@ import { AdminDashboard } from './pages/dashboards/AdminDashboard';
 
 import { LoadingScreen } from './components/LoadingScreen';
 
+const getDashboardRoute = (role?: string) => {
+  switch (role?.toLowerCase()) {
+    case 'student':
+      return '/dashboards/student';
+    case 'faculty':
+      return '/dashboards/faculty';
+    case 'admin':
+      return '/dashboards/admin';
+    default:
+      return '/';
+  }
+};
+
 /* ================================
    ROLE REDIRECTOR (FIXED)
 ================================ */
@@ -21,18 +34,7 @@ const RoleRedirector = () => {
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
 
-  const role = user.role?.toLowerCase();
-
-  switch (role) {
-    case 'student':
-      return <Navigate to="/dashboards/student" replace />;
-    case 'faculty':
-      return <Navigate to="/dashboards/faculty" replace />;
-    case 'admin':
-      return <Navigate to="/dashboards/admin" replace />;
-    default:
-      return <Navigate to="/" replace />;
-  }
+  return <Navigate to={getDashboardRoute(user.role)} replace />;
 };
 
 /* ================================
