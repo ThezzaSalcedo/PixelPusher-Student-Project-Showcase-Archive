@@ -17,80 +17,150 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Unified Handler: Checks domain AND fetches verified role from your 'profiles' table
-  const handleSetUser = async (supabaseUser: any) => {
+  const handleSetUser = async (supabaseUser: any): Promise<boolean> => {
+    if (!supabaseUser) return false;
+
+    const id = supabaseUser.id;
     const email = supabaseUser.email || '';
-    
-    // 1. Domain Gatekeeper
+
+    if (!id) return false;
+
+    console.log('handleSetUser - Processing user:', { id, email });
+
+    // block non-neu
     if (!email.endsWith('@neu.edu.ph')) {
+      console.log('handleSetUser - Invalid email domain:', email);
       await supabase.auth.signOut();
       setUser(null);
-      setTimeout(() => {
-        setError("Access Denied: Please use your official University Account (@neu.edu.ph).");
-      }, 100);
-      return;
+      setError("Invalid email domain. Please use your official @neu.edu.ph account.");
+      return false;
     }
 
-    try {
-      // 2. Fetch Verified Role from your Database Table
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, onboarded')
-        .eq('id', supabaseUser.id)
-        .single();
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role, onboarded')
+      .eq('id', id)
+      .maybeSingle();
 
-      if (profileError) throw profileError;
+    console.log('handleSetUser - Profile lookup result:', { profile, profileError });
 
-      // 3. Map to state
-      setUser({
-        id: supabaseUser.id,
-        displayName: supabaseUser.user_metadata.full_name || 'NEU Scholar',
-        email: email,
-        photo: supabaseUser.user_metadata.avatar_url,
-        role: profile.role || 'student',
-        onboarded: !!profile.onboarded,
-      });
-      setError(null);
-    } catch (err: any) {
-      console.error("Profile check failed:", err.message);
-      setError("Account configuration error. Please contact the administrator.");
+    // Check if profile exists
+    if (!profile) {
+      console.log('handleSetUser - No profile found for user:', id);
+      await supabase.auth.signOut();
+      setUser(null);
+      setError("Your account is not yet set up. Please contact your administrator.");
+      return false;
     }
+
+    // Check if profile has a valid role
+    const role = profile?.role?.toLowerCase().trim();
+    if (!['student', 'admin', 'faculty'].includes(role)) {
+      console.log('handleSetUser - Invalid role:', role);
+      await supabase.auth.signOut();
+      setUser(null);
+      setError("Your account role is not recognized. Please contact your administrator.");
+      return false;
+    }
+
+    const mappedUser: User = {
+      id,
+      displayName: supabaseUser.user_metadata?.full_name || 'NEU Scholar',
+      email,
+      photo: supabaseUser.user_metadata?.avatar_url,
+      role: role as 'student' | 'admin' | 'faculty',
+      onboarded: !!profile?.onboarded,
+    };
+
+    console.log('handleSetUser - User authenticated successfully:', { displayName: mappedUser.displayName, role: mappedUser.role });
+    setError(null);
+    setUser(mappedUser);
+    return true;
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) handleSetUser(session.user);
-      setLoading(false);
-    });
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) handleSetUser(session.user);
-      else setUser(null);
+      if (session?.user) {
+        await handleSetUser(session.user);
+      }
+
       setLoading(false);
-    });
+    };
+
+    init();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          await handleSetUser(session.user);
+        } else {
+          setUser(null);
+        }
+
+        setLoading(false);
+      }
+    );
+
     return () => subscription.unsubscribe();
   }, []);
 
   const login = async () => {
     setError(null);
+
+    console.log('login - Initiating Google OAuth');
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/dashboard' }
+      options: {
+        redirectTo: window.location.origin
+      }
     });
-    if (error) setError(error.message);
+
+    if (error) {
+      console.log('login - OAuth error:', error.message);
+      setError("Google sign-in failed. Please try again.");
+    }
   };
 
   const loginWithEmail = async (email: string, password: string) => {
     setError(null);
+
+    console.log('loginWithEmail - Attempting login for:', email);
+
     const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+
     if (authError) {
-      setError(authError.message);
-      return;
+      console.log('loginWithEmail - Authentication failed:', authError.message);
+      
+      // Provide user-friendly error messages
+      if (authError.message.includes('Invalid login credentials')) {
+        setError("Invalid email or password. Please try again.");
+      } else if (authError.message.includes('Email not confirmed')) {
+        setError("Please verify your email before logging in.");
+      } else {
+        setError(authError.message);
+      }
+      return false;
     }
-    if (data.user) await handleSetUser(data.user);
+
+    if (data?.user) {
+      console.log('loginWithEmail - Auth successful, setting user');
+      const validUser = await handleSetUser(data.user);
+      if (!validUser) {
+        console.log('loginWithEmail - User failed profile validation');
+        return false;
+      }
+      return true;
+    }
+
+    console.log('loginWithEmail - No user returned from auth');
+    setError("Login failed. Please try again.");
+    return false;
   };
 
   const logout = async () => {
@@ -99,11 +169,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, loginWithEmail, logout, error, setError, loading }}>
+    <AuthContext.Provider value={{
+      user,
+      login,
+      loginWithEmail,
+      logout,
+      error,
+      setError,
+      loading,
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Export the hook so useAuth can be found by App.tsx, LoginPage.tsx, etc.
 export const useAuth = () => useContext(AuthContext);
