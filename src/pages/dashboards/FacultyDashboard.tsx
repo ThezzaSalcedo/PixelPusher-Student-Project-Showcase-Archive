@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Project } from '../../types/project';
 import {
   approveProject,
@@ -87,19 +87,26 @@ const SAMPLE_PROJECTS: Project[] = [
 ];
 
 const SECTIONS = [
-  { id: 'repository', label: 'Project Repository', icon: Database },
-  { id: 'approval', label: 'Approval', icon: CheckSquare },
+  { id: 'dashboard', label: 'Main Dashboard', icon: Database },
+  { id: 'approval', label: 'Approval Queue', icon: CheckSquare },
   { id: 'preview', label: 'Project Preview', icon: Eye },
+  { id: 'comments', label: 'Comments & Replies', icon: MessageCircle },
+  { id: 'governance', label: 'Deadlines & Windows', icon: ShieldCheck },
   { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark },
 ] as const;
 
 type SectionKey = (typeof SECTIONS)[number]['id'];
+const SECTION_ID_SET = new Set<SectionKey>(SECTIONS.map((section) => section.id));
+const getValidSection = (value: string | null, fallback: SectionKey): SectionKey => (
+  value && SECTION_ID_SET.has(value as SectionKey) ? (value as SectionKey) : fallback
+);
 
 export const FacultyDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeSection, setActiveSection] = useState<SectionKey>('repository');
+  const [activeSection, setActiveSection] = useState<SectionKey>(() => getValidSection(searchParams.get('section'), 'dashboard'));
   const [repositoryProjects, setRepositoryProjects] = useState<Project[]>([]);
   const [pendingProjects, setPendingProjects] = useState<Project[]>([]);
   const [bookmarks, setBookmarks] = useState<Project[]>([]);
@@ -110,6 +117,10 @@ export const FacultyDashboard = () => {
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedProgram, setSelectedProgram] = useState('All');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [commentText, setCommentText] = useState('');
+  const [queryReply, setQueryReply] = useState('');
+  const [selectedForBatch, setSelectedForBatch] = useState<number[]>([]);
+  const [deadlineByDept, setDeadlineByDept] = useState<Record<string, string>>({});
 
   const handleLogout = async () => {
     await logout();
@@ -133,6 +144,22 @@ export const FacultyDashboard = () => {
   useEffect(() => {
     refreshData();
   }, [user?.id]);
+
+  useEffect(() => {
+    const sectionFromUrl = getValidSection(searchParams.get('section'), 'dashboard');
+    if (sectionFromUrl !== activeSection) {
+      setActiveSection(sectionFromUrl);
+    }
+  }, [searchParams, activeSection]);
+
+  const handleSectionChange = (section: SectionKey) => {
+    setActiveSection(section);
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set('section', section);
+      return next;
+    }, { replace: true });
+  };
 
   const filteredRepository = useMemo(() => {
     return repositoryProjects.filter((project) => {
@@ -220,7 +247,7 @@ export const FacultyDashboard = () => {
               active={activeSection === section.id}
               collapsed={isCollapsed}
               onClick={() => {
-                setActiveSection(section.id);
+                handleSectionChange(section.id);
                 if (section.id === 'preview') {
                   setPreviewProject(repositoryProjects[0] || pendingProjects[0] || null);
                 }
@@ -243,7 +270,7 @@ export const FacultyDashboard = () => {
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <h1 className="text-5xl font-black uppercase tracking-tighter">Faculty <span className="text-orange-500 italic">Portal.</span></h1>
-                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-2">{activeLabel}</p>
+                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-2">Main Feed: Posted Projects</p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
                 <div className="rounded-3xl bg-white/5 border border-white/5 px-5 py-4 text-sm text-slate-300">Review queue: <span className="font-black text-white">{pendingProjects.length}</span></div>
@@ -270,11 +297,11 @@ export const FacultyDashboard = () => {
 
   function renderActiveSection() {
     switch (activeSection) {
-      case 'repository':
+      case 'dashboard':
         return (
-          <SectionCard title="Approved Repository" subtitle="Browse faculty-approved student knowledge entries." count={filteredRepository.length}>
+          <SectionCard title="Main Dashboard" subtitle="All posted projects from student submissions." count={filteredRepository.length}>
             {filteredRepository.length === 0 ? (
-              <EmptyState label="No approved projects are available." />
+              <EmptyState label="No posted projects are available." />
             ) : (
               <div className="grid gap-6">
                 {filteredRepository.map((project) => (
@@ -286,7 +313,12 @@ export const FacultyDashboard = () => {
         );
       case 'approval':
         return (
-          <SectionCard title="Approval Queue" subtitle="Review pending submissions and add notes before approval." count={filteredPending.length}>
+          <SectionCard title="Approval Queue + Request Forms" subtitle="Review student submission request forms before their projects appear in the repository." count={filteredPending.length}>
+            <div className="mb-4 flex gap-3">
+              <button className="rounded-2xl bg-white/10 px-4 py-2 text-xs" onClick={() => setSelectedForBatch(filteredPending.map((project) => project.id))}>Select All</button>
+              <button className="rounded-2xl bg-emerald-500 px-4 py-2 text-xs text-slate-950" onClick={() => setStatusMessage(`Batch approve prepared for ${selectedForBatch.length} projects.`)}>Batch Approve</button>
+              <button className="rounded-2xl bg-red-500/20 px-4 py-2 text-xs text-red-300" onClick={() => setStatusMessage(`Batch reject prepared for ${selectedForBatch.length} projects.`)}>Batch Reject</button>
+            </div>
             {filteredPending.length === 0 ? (
               <EmptyState label="No pending projects in the approval queue." />
             ) : (
@@ -297,7 +329,7 @@ export const FacultyDashboard = () => {
                     project={project}
                     onApprove={() => handleApprove(project.id)}
                     onReject={() => handleReject(project.id)}
-                    onPreview={() => { setPreviewProject(project); setActiveSection('preview'); }}
+                    onPreview={() => { setPreviewProject(project); handleSectionChange('preview'); }}
                   />
                 ))}
               </div>
@@ -312,6 +344,35 @@ export const FacultyDashboard = () => {
         ) : (
           <SectionCard title="Project Preview" subtitle="Select a pending project from the queue." count={0}>
             <EmptyState label="Open a pending submission to preview details." />
+          </SectionCard>
+        );
+      case 'comments':
+        return (
+          <SectionCard title="Comments and Query Replies" subtitle="Comment on projects and reply to student questions directly." count={0}>
+            <div className="space-y-4">
+              <textarea value={commentText} onChange={(event) => setCommentText(event.target.value)} className="w-full rounded-3xl border border-white/10 bg-slate-950/80 p-4 text-sm" placeholder="Add personal comment on selected project..." />
+              <div className="flex gap-3">
+                <button className="rounded-2xl bg-orange-500 px-4 py-2 text-xs text-slate-950" onClick={() => setStatusMessage('Personal comment saved.')}>Add Comment</button>
+                <button className="rounded-2xl bg-red-500/10 px-4 py-2 text-xs text-red-300" onClick={() => setStatusMessage('Your personal comment deleted.')}>Delete My Comment</button>
+              </div>
+              <textarea value={queryReply} onChange={(event) => setQueryReply(event.target.value)} className="w-full rounded-3xl border border-white/10 bg-slate-950/80 p-4 text-sm" placeholder="Reply to student query..." />
+              <button className="rounded-2xl bg-white/10 px-4 py-2 text-xs" onClick={() => setStatusMessage('Reply sent to student query.')}>Send Reply</button>
+            </div>
+          </SectionCard>
+        );
+      case 'governance':
+        return (
+          <SectionCard title="Governance Controls" subtitle="Set submission deadlines per department and semester window." count={0}>
+            <div className="space-y-4">
+              {['CICS', 'COE', 'CAS'].map((dept) => (
+                <div key={dept} className="rounded-2xl border border-white/10 p-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{dept}</p>
+                  <input type="date" value={deadlineByDept[dept] || ''} onChange={(event) => setDeadlineByDept((current) => ({ ...current, [dept]: event.target.value }))} className="mt-2 rounded-xl bg-slate-900 px-3 py-2 text-sm" />
+                </div>
+              ))}
+              <button className="rounded-2xl bg-orange-500 px-4 py-2 text-xs text-slate-950" onClick={() => setStatusMessage('Submission windows saved.')}>Save Department Windows</button>
+              <button className="rounded-2xl bg-white/10 px-4 py-2 text-xs" onClick={() => setStatusMessage('Editor rights granted: metadata suggestion mode active.')}>Enable Metadata Edit Rights</button>
+            </div>
           </SectionCard>
         );
       case 'bookmarks':
@@ -363,7 +424,13 @@ const ApprovalCard = ({ project, onApprove, onReject, onPreview }: any) => (
           <span className="rounded-full bg-slate-900/70 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-slate-300">Pending Review</span>
         </div>
         <h3 className="text-3xl font-black uppercase tracking-tight text-white">{project.title}</h3>
-        <p className="text-sm leading-relaxed text-slate-400">{project.abstract || 'No abstract provided.'}</p>
+        <p className="text-sm leading-relaxed text-slate-400">{project.summary || project.abstract || 'No abstract provided.'}</p>
+        {project.request_reason && (
+          <p className="mt-3 text-xs leading-relaxed text-slate-400">
+            <span className="font-black uppercase tracking-[0.25em] text-slate-500 mr-2">Request Reason:</span>
+            {project.request_reason}
+          </p>
+        )}
       </div>
       <div className="flex flex-col gap-3 min-w-[220px]">
         <button onClick={onPreview} className="rounded-3xl bg-white/10 px-5 py-4 text-sm uppercase tracking-[0.35em] text-white hover:bg-white/20">Preview Project</button>

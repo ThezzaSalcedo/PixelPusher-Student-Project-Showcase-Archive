@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Project } from '../../types/project';
 import type { AppUser } from '../../types/user';
 import type { AuditLog } from '../../types/audit';
@@ -76,23 +76,28 @@ const SAMPLE_PROJECTS: Project[] = [
 ];
 
 const SECTIONS = [
-  { id: 'repository', label: 'Project Repository', icon: Database },
-  { id: 'approval', label: 'Approval', icon: CheckSquare },
+  { id: 'dashboard', label: 'Main Dashboard', icon: Database },
+  { id: 'approval', label: 'Approval & CRUD', icon: CheckSquare },
   { id: 'preview', label: 'Project Preview', icon: Eye },
-  { id: 'admin', label: 'Admin Panel', icon: ShieldCheck },
-  { id: 'audit', label: 'Audit Trail', icon: History },
+  { id: 'admin', label: 'System Logs', icon: ShieldCheck },
+  { id: 'audit', label: 'Approval Audit Trail', icon: History },
   { id: 'users', label: 'User Management', icon: Users },
-  { id: 'report', label: 'Report', icon: BarChart3 },
+  { id: 'report', label: 'Intelligence Center', icon: BarChart3 },
   { id: 'bookmarks', label: 'Bookmark', icon: Bookmark },
 ] as const;
 
 type SectionKey = (typeof SECTIONS)[number]['id'];
+const SECTION_ID_SET = new Set<SectionKey>(SECTIONS.map((section) => section.id));
+const getValidSection = (value: string | null, fallback: SectionKey): SectionKey => (
+  value && SECTION_ID_SET.has(value as SectionKey) ? (value as SectionKey) : fallback
+);
 
 export const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeSection, setActiveSection] = useState<SectionKey>('repository');
+  const [activeSection, setActiveSection] = useState<SectionKey>(() => getValidSection(searchParams.get('section'), 'dashboard'));
   const [repositoryProjects, setRepositoryProjects] = useState<Project[]>([]);
   const [pendingProjects, setPendingProjects] = useState<Project[]>([]);
   const [bookmarks, setBookmarks] = useState<Project[]>([]);
@@ -132,6 +137,22 @@ export const AdminDashboard = () => {
     refreshData();
   }, [user?.id]);
 
+  useEffect(() => {
+    const sectionFromUrl = getValidSection(searchParams.get('section'), 'dashboard');
+    if (sectionFromUrl !== activeSection) {
+      setActiveSection(sectionFromUrl);
+    }
+  }, [searchParams, activeSection]);
+
+  const handleSectionChange = (section: SectionKey) => {
+    setActiveSection(section);
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set('section', section);
+      return next;
+    }, { replace: true });
+  };
+
   const filteredRepository = useMemo(() => {
     return repositoryProjects.filter((project) => {
       const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -145,7 +166,7 @@ export const AdminDashboard = () => {
 
   const handleChoosePreview = (project: Project) => {
     setPreviewProject(project);
-    setActiveSection('preview');
+    handleSectionChange('preview');
   };
 
   const handleApprove = async (projectId: number) => {
@@ -224,7 +245,7 @@ export const AdminDashboard = () => {
               label={section.label}
               active={activeSection === section.id}
               collapsed={isCollapsed}
-              onClick={() => setActiveSection(section.id)}
+              onClick={() => handleSectionChange(section.id)}
             />
           ))}
         </nav>
@@ -243,7 +264,7 @@ export const AdminDashboard = () => {
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <h1 className="text-5xl font-black uppercase tracking-tighter">Admin <span className="text-orange-500 italic">Control.</span></h1>
-                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-2">{activeLabel}</p>
+                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-2">Main Feed: Posted Projects</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
                 <InfoChip icon={<Activity size={18} />} label="Projects" value={`${repositoryProjects.length}`} />
@@ -271,9 +292,9 @@ export const AdminDashboard = () => {
 
   function renderActiveSection() {
     switch (activeSection) {
-      case 'repository':
+      case 'dashboard':
         return (
-          <SectionCard title="Project Repository" subtitle="All projects currently stored in the archive." count={filteredRepository.length}>
+          <SectionCard title="Main Dashboard" subtitle="All posted projects from student submissions." count={filteredRepository.length}>
             {filteredRepository.length === 0 ? (
               <EmptyState label="No projects found." />
             ) : (
@@ -287,7 +308,7 @@ export const AdminDashboard = () => {
         );
       case 'approval':
         return (
-          <SectionCard title="Approval Queue" subtitle="Review pending or submitted projects before approval." count={pendingProjects.length}>
+          <SectionCard title="Full CRUD + Soft Delete Controls" subtitle="Admin views the same approval queue and can enforce soft deletes and restores." count={pendingProjects.length}>
             {pendingProjects.length === 0 ? (
               <EmptyState label="No pending projects at this time." />
             ) : (
@@ -311,10 +332,10 @@ export const AdminDashboard = () => {
         );
       case 'admin':
         return (
-          <SectionCard title="Admin Panel" subtitle="Core governance controls for taxonomy and system health." count={0}>
+          <SectionCard title="System Modification Logs" subtitle="Track modifications, deletions, and critical events." count={auditLogs.length}>
             <div className="grid gap-6 lg:grid-cols-2">
               <MetricCard icon={<ShieldCheck size={18} />} label="Taxonomy" value="Manage tags and categories" />
-              <MetricCard icon={<MessageCircle size={18} />} label="Moderation" value="Edit or remove any entry" />
+              <MetricCard icon={<MessageCircle size={18} />} label="Moderation" value="Soft-delete and restore entries" />
               <MetricCard icon={<TrendingUp size={18} />} label="Analytics" value="Insights for departmental memory" />
               <MetricCard icon={<Activity size={18} />} label="Audit" value="Track recent admin actions" />
             </div>
@@ -350,11 +371,18 @@ export const AdminDashboard = () => {
         );
       case 'report':
         return (
-          <SectionCard title="Reports" subtitle="Institutional memory metrics and summary insights." count={0}>
+          <SectionCard title="Intelligence Center" subtitle="Visual analytics, search trends, and exportable reports." count={0}>
             <div className="grid gap-6 lg:grid-cols-3">
               <ReportTile title="Departments" value="CICS, COE, CAS" />
               <ReportTile title="Top Stack" value="React, Supabase, AI" />
               <ReportTile title="Approval Rate" value="82%" />
+            </div>
+            <div className="mt-6 rounded-3xl border border-white/10 bg-slate-950/40 p-6">
+              <p className="text-sm text-slate-300">Search analytics: "AI", "IoT", and "NLP" are the most searched terms this semester.</p>
+              <div className="mt-4 flex gap-3">
+                <button className="rounded-2xl bg-orange-500 px-4 py-2 text-xs text-slate-950" onClick={() => setStatusMessage('PDF export started for analytics report.')}>Export Analytics PDF</button>
+                <button className="rounded-2xl bg-white/10 px-4 py-2 text-xs" onClick={() => setStatusMessage('Submission report export started.')}>Export Submission Report</button>
+              </div>
             </div>
           </SectionCard>
         );
