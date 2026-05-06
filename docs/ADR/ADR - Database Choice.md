@@ -2,7 +2,7 @@
 
 > **Date**: April 4, 2026
 
-> **Status**: Decided
+> **Status**: `Decided`
 
 ## Context
 
